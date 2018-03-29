@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration debug="true" scan="true" scanPeriod="2">
+    <!-- 控制台输出 -->
+    <appender name="console_out" class="ch.qos.logback.core.ConsoleAppender">
+        <!-- 日志格式 -->
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] - %-5level %logger --- %msg%n</pattern>
+        </encoder>
+        <!--<filter class="ch.qos.logback.classic.filter.LevelFilter">-->
+        <!--<level>DEBUG</level>-->
+        <!--<onMatch>ACCEPT</onMatch>-->
+        <!--<onMismatch>DENY</onMismatch>-->
+        <!--</filter>-->
+    </appender>
+
+    <!-- 文件输出 -->
+    <appender name="file_out" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <!-- 日志存放位置 -->
+        <file>${user.home}/logs/pdConfig/pdConfig.log</file>
+        <!-- 日志分块 -->
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!-- 存放时间 -->
+            <maxHistory>30</maxHistory>
+            <!-- 存放文件格式 -->
+            <fileNamePattern>pdConfig.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <!-- 文件大小 -->
+            <totalSizeCap>1GB</totalSizeCap>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] - %-5level %logger --- %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!--<logger name="com.peramdy.config.App" level="DEBUG">-->
+        <!--<appender-ref ref="file_out"/>-->
+        <!--<appender-ref ref="console_out"/>-->
+    <!--</logger>-->
+
+<!--    <logger name="com.peramdy.config.*" level="INFO">
+        <appender-ref ref="console_out"/>
+    </logger>>-->
+
+    <root level="INFO">
+        <appender-ref ref="file_out"/>
+        <appender-ref ref="console_out"/>
+    </root>
+
+</configuration>
