@@ -23,6 +23,16 @@ public class ZkConstants {
     /**
      * zk 超时时间
      */
-    public static int TIMEOUT = 5000;
+    public static String TIMEOUT = "5000";
+
+    public static String ZK_ADDRESSES = "zkAddresses";
+
+    public static String ZK_TIMEOUT = "zkTimeout";
+
+    public static String APP_NAME = "appName";
+
+    public static String PARENT_PATH = "/PdConfig";
+
+    public static String ENV = "env";
 
 }

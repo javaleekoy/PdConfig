@@ -20,40 +20,62 @@ public class ZkServer implements Watcher {
 
     private CountDownLatch countDownLatch = new CountDownLatch(1);
 
-
     private ZooKeeper zooKeeper;
 
     /**
-     * 创建连接
+     * create zk
      *
      * @return ZooKeeper
      */
     public ZooKeeper createDefault() {
         try {
-            logger.info("zk 地址：" + ZkConstants.ADDRESS);
-            logger.info("zk 超时：" + ZkConstants.TIMEOUT);
-            zooKeeper = new ZooKeeper(ZkConstants.ADDRESS, ZkConstants.TIMEOUT, this);
+            logger.info("zk default address：" + ZkConstants.ADDRESS);
+            logger.info("zk default timeout：" + ZkConstants.TIMEOUT);
+            zooKeeper = new ZooKeeper(ZkConstants.ADDRESS, Integer.parseInt(ZkConstants.TIMEOUT), this);
             countDownLatch.await();
-            logger.info("zk 连接成功");
+            logger.info("zk default connect success");
         } catch (IOException e) {
-            throw new PdException("zk 连接异常", e);
+            throw new PdException("zk default connect exception", e);
         } catch (InterruptedException e) {
-            throw new PdException("countDownLatch 异常", e);
+            throw new PdException("countDownLatch exception", e);
+        }
+        return zooKeeper;
+    }
+
+
+    /**
+     * create zk
+     *
+     * @param addresses
+     * @param timeout
+     * @return
+     */
+    public ZooKeeper createZk(String addresses, int timeout) {
+        try {
+            logger.info("zk address：" + addresses);
+            logger.info("zk timeout：" + timeout);
+            zooKeeper = new ZooKeeper(addresses, timeout, this);
+            countDownLatch.await();
+            logger.info("zk connect success");
+        } catch (IOException e) {
+            throw new PdException("zk connect exception", e);
+        } catch (InterruptedException e) {
+            throw new PdException("countDownLatch exception", e);
         }
         return zooKeeper;
     }
 
     /**
-     * 关闭连接
+     * close zk
      */
     public void closeDefault() {
         if (zooKeeper != null) {
             try {
-                logger.info("zk 断开...");
+                logger.info("zk closing...");
                 zooKeeper.close();
-                logger.info("zk 断开成功");
+                logger.info("zk closed");
             } catch (InterruptedException e) {
-                throw new PdException("zk 关闭异常", e);
+                throw new PdException("zk close exception", e);
             }
         }
     }
@@ -67,11 +89,11 @@ public class ZkServer implements Watcher {
         return new ZkServer();
     }
 
-
     @Override
     public void process(WatchedEvent event) {
-        logger.info("zk 监听事件开始：" + event.getState());
-        logger.info("zk 监听事件类型：" + event.getType());
+        logger.info("zk watch state：" + event.getState());
+        logger.info("zk watch type：" + event.getType());
+
         if (event.getState() == Event.KeeperState.SyncConnected) {
             countDownLatch.countDown();
         }

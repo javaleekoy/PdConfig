@@ -10,21 +10,16 @@
     <name>PdConfig</name>
     <url>http://maven.apache.org</url>
 
-    <parent>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-parent</artifactId>
-        <version>2.0.0.RELEASE</version>
-    </parent>
-
     <!-- project properties -->
     <properties>
 
         <!-- main version settings -->
-        <spring-boot.version>2.0.0.RELEASE</spring-boot.version>
         <zookeeper.version>3.4.11</zookeeper.version>
 
         <!-- tools version settings -->
         <lang3.version>3.7</lang3.version>
+        <logback.version>1.2.3</logback.version>
+        <slf4j.version>1.7.25</slf4j.version>
 
         <!-- environment settings -->
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -34,10 +29,6 @@
     <dependencies>
 
         <!-- main -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-web</artifactId>
-        </dependency>
         <dependency>
             <groupId>org.apache.zookeeper</groupId>
             <artifactId>zookeeper</artifactId>
@@ -50,15 +41,24 @@
             <artifactId>commons-lang3</artifactId>
             <version>${lang3.version}</version>
         </dependency>
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>${logback.version}</version>
+        </dependency>
 
     </dependencies>
 
     <build>
         <plugins>
-            <!-- fat jar -->
             <plugin>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-maven-plugin</artifactId>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.6.0</version>
+                <configuration>
+                    <source>1.8</source>
+                    <target>1.8</target>
+                </configuration>
             </plugin>
         </plugins>
     </build>

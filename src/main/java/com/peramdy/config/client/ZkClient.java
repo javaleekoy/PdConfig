@@ -20,6 +20,13 @@ public class ZkClient {
 
     private Logger logger = LoggerFactory.getLogger(ZkClient.class);
 
+    private ZooKeeper zooKeeper;
+
+    public ZkClient(ZooKeeper zooKeeper) {
+        this.zooKeeper = zooKeeper;
+    }
+
+
     /**
      * 创建node
      *
@@ -29,35 +36,38 @@ public class ZkClient {
      */
     public String createNode(String path, String value) {
         if (StringUtils.isBlank(path) || StringUtils.isBlank(value)) {
-            logger.error("zk 创建node的path 或 value 为空了");
-            logger.info("zk 创建node-path ：" + path);
-            logger.info("zk 创建 node-value：" + value);
+            logger.error("zk create node params : path or value is null");
+            logger.info("zk path ：" + path);
+            logger.info("zk value：" + value);
             return null;
         }
         String rePath;
-        ZkServer zkServer = ZkServer.getInstance();
-        ZooKeeper zooKeeper = zkServer.createDefault();
         try {
             Stat stat = zooKeeper.exists(path, true);
             if (stat != null) {
-                logger.info("zk 创建的node：" + path + "已经存在了");
-                return path;
+                List<String> list = zooKeeper.getChildren(path, true);
+                if (list.size() > 0) {
+                    if (list.contains(value)) {
+                        logger.info("zk node :" + path + ",value：" + value + " are existed");
+                        return path;
+                    }
+                } else {
+                    Stat stat2 = zooKeeper.setData(path, value.getBytes(), stat.getVersion());
+                    return path;
+                }
             }
-            logger.info("zk 创建node-path ：" + path);
-            logger.info("zk 创建node-value：" + value);
+            logger.info("zk path ：" + path);
+            logger.info("zk value：" + value);
             rePath = zooKeeper.create(path, value.getBytes(), ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-            logger.info("zk 创建node成功：" + rePath);
+            logger.info("zk create node success：" + rePath);
         } catch (KeeperException e) {
-            throw new PdException(e);
+            throw new PdException("zk exception", e);
         } catch (InterruptedException e) {
             throw new PdException(e);
-        } finally {
-            if (zooKeeper != null) {
-                zkServer.closeDefault();
-            }
         }
         return rePath;
     }
+
 
     /**
      * 查询node值
@@ -67,103 +77,21 @@ public class ZkClient {
      */
     public String getNodeValue(String path) {
         if (StringUtils.isBlank(path)) {
-            logger.error("zk 查询node的path 为空了");
+            logger.error("zk node path is null");
             return null;
         }
-        ZkServer zkServer = ZkServer.getInstance();
-        ZooKeeper zooKeeper = zkServer.createDefault();
         String value;
         try {
-            logger.info("zk 查询node的path为：" + path);
+            logger.info("zk node path ：" + path);
             byte[] bVal = zooKeeper.getData(path, true, null);
             value = new String(bVal);
         } catch (KeeperException e) {
             throw new PdException(e);
         } catch (InterruptedException e) {
             throw new PdException(e);
-        } finally {
-            if (zooKeeper != null) {
-                zkServer.closeDefault();
-            }
         }
-        logger.info("zk 查询node值为：" + value);
+        logger.info("zk node value：" + value);
         return value;
-    }
-
-
-    public String createTempChildNode(String parentPath, String path, String value) {
-        if (StringUtils.isBlank(parentPath) || StringUtils.isBlank(path) || StringUtils.isBlank(value)) {
-            logger.error("zk 创建临时子节点 parentPath 或 path 或 value 为空了");
-            logger.info("zk 创建临时子节点 parentPath ：" + parentPath);
-            logger.info("zk 创建临时子节点 path ：" + path);
-            logger.info("zk 创建临时子节点 value：" + value);
-            return null;
-        }
-        String rePath;
-        ZkServer zkServer = ZkServer.getInstance();
-        ZooKeeper zooKeeper = zkServer.createDefault();
-        try {
-            Stat stat = zooKeeper.exists(parentPath, true);
-            if (stat == null) {
-                logger.info("zk 创建临时子节点，父节点" + parentPath + "不存在了");
-                return null;
-            }
-            logger.info("zk 创建临时子节点 parentPath ：" + parentPath);
-            logger.info("zk 创建临时子节点 path ：" + path);
-            logger.info("zk 创建临时子节点 value：" + value);
-            rePath = zooKeeper.create(parentPath + path, value.getBytes(), ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL);
-            logger.info("zk 创建临时子节点成功：" + rePath);
-        } catch (KeeperException e) {
-            throw new PdException(e);
-        } catch (InterruptedException e) {
-            throw new PdException(e);
-        } finally {
-            if (zooKeeper != null) {
-                zkServer.closeDefault();
-            }
-        }
-        return rePath;
-    }
-
-
-    public String createChildNode(String parentPath, String path, String value) {
-        if (StringUtils.isBlank(parentPath) || StringUtils.isBlank(path) || StringUtils.isBlank(value)) {
-            logger.error("zk 创建子节点 parentPath 或 path 或 value 为空了");
-            logger.info("zk 创建子节点 parentPath ：" + parentPath);
-            logger.info("zk 创建子节点 path ：" + path);
-            logger.info("zk 创建子节点 value：" + value);
-            return null;
-        }
-        String rePath;
-        ZkServer zkServer = ZkServer.getInstance();
-        ZooKeeper zooKeeper = zkServer.createDefault();
-        try {
-            Stat parentStat = zooKeeper.exists(parentPath, true);
-            if (parentStat == null) {
-                logger.info("zk 创建子节点，父节点" + parentPath + "不存在了");
-                return null;
-            }
-
-            Stat childStat = zooKeeper.exists(parentPath + path, true);
-            if (childStat == null) {
-                logger.info("zk 创建子节点" + parentPath + path + "不存在了");
-                return null;
-            }
-            logger.info("zk 创建子节点 parentPath ：" + parentPath);
-            logger.info("zk 创建子节点 path ：" + path);
-            logger.info("zk 创建子节点 value：" + value);
-            rePath = zooKeeper.create(parentPath + path, value.getBytes(), ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-            logger.info("zk 创建子节点成功：" + rePath);
-        } catch (KeeperException e) {
-            throw new PdException(e);
-        } catch (InterruptedException e) {
-            throw new PdException(e);
-        } finally {
-            if (zooKeeper != null) {
-                zkServer.closeDefault();
-            }
-        }
-        return rePath;
     }
 
     /**
@@ -172,30 +100,23 @@ public class ZkClient {
      */
     public List<String> getChildrenNodeValue(String path) {
         if (StringUtils.isBlank(path)) {
-            logger.error("zk 查询children的path 为空了");
+            logger.error("zk child path is null");
             return null;
         }
-        ZkServer zkServer = ZkServer.getInstance();
-        ZooKeeper zooKeeper = zkServer.createDefault();
         List<String> list;
         try {
-            logger.info("zk 查询children的path为：" + path);
-            list = zooKeeper.getChildren(path, true);
+            logger.info("zk child path ：" + path);
+            list = zooKeeper.getChildren(path, false);
             if (list == null || list.size() == 0) {
-                logger.info("zk 查询children的list为：null");
+                logger.info("zk child node is null");
             }
         } catch (KeeperException e) {
             throw new PdException(e);
         } catch (InterruptedException e) {
             throw new PdException(e);
-        } finally {
-            if (zooKeeper != null) {
-                zkServer.closeDefault();
-            }
         }
         return list;
     }
-
 
     /**
      * @param path
@@ -205,26 +126,20 @@ public class ZkClient {
      */
     public Stat setNodeValue(String path, String value, int version) {
         if (StringUtils.isBlank(path) || StringUtils.isBlank(value)) {
-            logger.error("zk 更新node的path　或　value 为空了");
+            logger.error("zk node path or value is null");
             return null;
         }
-        Stat stat = null;
-        ZkServer zkServer = ZkServer.getInstance();
-        ZooKeeper zooKeeper = zkServer.createDefault();
+        Stat stat;
         try {
-            logger.info("zk 更新node的path为：" + path);
-            logger.info("zk 更新node的value为：" + value);
-            logger.info("zk 更新node的version为：" + version);
+            logger.info("zk path：" + path);
+            logger.info("zk value：" + value);
+            logger.info("zk version：" + version);
             stat = zooKeeper.setData(path, value.getBytes(), version);
-            logger.info("zk 更新node的sate：" + stat);
+            logger.info("zk sate：" + stat);
         } catch (InterruptedException e) {
-            e.printStackTrace();
+            throw new PdException(e);
         } catch (KeeperException e) {
-            e.printStackTrace();
-        } finally {
-            if (zooKeeper != null) {
-                zkServer.closeDefault();
-            }
+            throw new PdException(e);
         }
         return stat;
     }
@@ -234,10 +149,13 @@ public class ZkClient {
      * @param version
      */
     public void deleteNode(String path, int version) {
-        ZkServer zkServer = ZkServer.getInstance();
-        ZooKeeper zooKeeper = zkServer.createDefault();
+        if (StringUtils.isBlank(path)) {
+            logger.error("zk node path is null");
+            return;
+        }
         try {
             zooKeeper.delete(path, version);
+            logger.info("zk node is deleted，path:" + path);
         } catch (InterruptedException e) {
             throw new PdException(e);
         } catch (KeeperException e) {
@@ -250,8 +168,10 @@ public class ZkClient {
      * @return
      */
     public Stat exists(String path) {
-        ZkServer zkServer = ZkServer.getInstance();
-        ZooKeeper zooKeeper = zkServer.createDefault();
+        if (StringUtils.isBlank(path)) {
+            logger.error("zk node path is null");
+            return null;
+        }
         Stat stat;
         try {
             stat = zooKeeper.exists(path, true);
@@ -264,20 +184,44 @@ public class ZkClient {
         return stat;
     }
 
+    /**
+     *
+     */
+    public void closeZk() {
+        if (zooKeeper != null) {
+            try {
+                zooKeeper.close();
+            } catch (InterruptedException e) {
+                throw new PdException("关闭zk异常", e);
+            }
+        }
+    }
 
-    public static void main(String[] args) {
-        ZkClient zkClient = new ZkClient();
-        zkClient.createNode("/peramdy", "zk today is thursday");
-        zkClient.getNodeValue("/peramdy");
-        zkClient.setNodeValue("/peramdy", "zk hello", -1);
-        zkClient.createTempChildNode("/peramdy", "/one", "hello one");
-        zkClient.createChildNode("/peramdy", "/two", "hello two");
-        zkClient.getChildrenNodeValue("/peramdy");
-        zkClient.getNodeValue("/peramdy");
-        zkClient.exists("/peramdy");
-        zkClient.deleteNode("/peramdy/two", -1);
-        zkClient.deleteNode("/peramdy", -1);
+    /**
+     * builder
+     */
+    public static class Builder {
+
+        private String addresses;
+        private int timeout;
+
+        public Builder addresses(String addresses) {
+            this.addresses = addresses;
+            return this;
+        }
+
+        public Builder timeout(int timeout) {
+            this.timeout = timeout;
+            return this;
+        }
+
+        public ZkClient build() {
+            ZkServer zkServer = ZkServer.getInstance();
+            ZooKeeper zooKeeper = zkServer.createZk(addresses, timeout);
+            return new ZkClient(zooKeeper);
+        }
 
     }
+
 
 }

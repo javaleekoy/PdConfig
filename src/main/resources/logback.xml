@@ -32,17 +32,17 @@
     </appender>
 
     <!--<logger name="com.peramdy.config.App" level="DEBUG">-->
-        <!--<appender-ref ref="file_out"/>-->
-        <!--<appender-ref ref="console_out"/>-->
+    <!--<appender-ref ref="file_out"/>-->
+    <!--<appender-ref ref="console_out"/>-->
     <!--</logger>-->
 
-<!--    <logger name="com.peramdy.config.*" level="INFO">
+    <logger name="com.peramdy.config" level="INFO">
         <appender-ref ref="console_out"/>
-    </logger>>-->
+    </logger>
 
-    <root level="INFO">
+    <root level="DEBUG">
         <appender-ref ref="file_out"/>
-        <appender-ref ref="console_out"/>
+        <!--<appender-ref ref="console_out"/>-->
     </root>
 
 </configuration>
