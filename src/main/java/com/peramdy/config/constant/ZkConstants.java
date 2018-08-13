@@ -18,7 +18,7 @@ public class ZkConstants {
     /**
      * zk IP:PORT
      */
-    public static String ADDRESS = "192.168.136.130:12181";
+    public static String ADDRESS = IP + ":" + PORT;
 
     /**
      * zk 超时时间

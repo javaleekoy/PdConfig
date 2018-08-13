@@ -43,7 +43,7 @@ public class ZkClient {
         }
         String rePath;
         try {
-            Stat stat = zooKeeper.exists(path, true);
+            Stat stat = zooKeeper.exists(path, null);
             if (stat != null) {
                 List<String> list = zooKeeper.getChildren(path, true);
                 if (list.size() > 0) {
